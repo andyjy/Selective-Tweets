@@ -1,0 +1,1 @@
+../cli/clean_queue.php
