@@ -33,7 +33,7 @@ $user_data = $controller->getUserData();
 
 ?>
 
-<form action="http://apps.facebook.com/selectivetwitter/settings.php" method="post" promptpermission="publish_stream" style="padding: 15px; background-color: #fff; border: 4px solid #C6E2EE;">
+<form action="https://apps.facebook.com/selectivetwitter/settings.php" method="post" promptpermission="publish_stream" style="padding: 15px; background-color: #fff; border: 4px solid #C6E2EE;">
 	<input type="hidden" name="sub_save" value="1"/>
 	<h2>
 		Settings

@@ -67,7 +67,7 @@ if ($pages) {
 	<?php
 	} // pages_count
 	?>
-	<form action="http://apps.facebook.com/selectivetwitter/pages.php" method="post">
+	<form action="https://apps.facebook.com/selectivetwitter/pages.php" method="post">
 		<?php
 		echo '<table style="width: 100%;"><tr><th colspan="2">Page</th><th>Twitter username</th>';
 		foreach ($pages as $page) {
