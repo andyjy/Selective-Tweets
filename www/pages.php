@@ -14,7 +14,7 @@ $controller->requireLogin();
 $fb = $controller->getFacebook();
 
 if (!$controller->getCanPostToPages()) {
-	$url = $fb->getLoginURL(array('redirect_uri' => 'http://apps.facebook.com/selectivetwitter/pages', 'scope' => 'publish_stream,manage_pages,offline_access'));
+	$url = $fb->getLoginURL(array('redirect_uri' => 'http://apps.facebook.com/selectivetwitter/pages', 'scope' => 'publish_stream,manage_pages'));
 	$controller->redirect($url);
 }
 

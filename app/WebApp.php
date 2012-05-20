@@ -73,7 +73,7 @@ class SelectiveTweets_WebApp extends SelectiveTweets_BaseApp
 	{
 		try {
 			$permissions = $this->fb->api('/me/permissions');
-			return !(empty($permissions['data'][0]['manage_pages']) || empty($permissions['data'][0]['offline_access']) || empty($permissions['data'][0]['publish_stream']));
+			return !(empty($permissions['data'][0]['manage_pages']) || empty($permissions['data'][0]['publish_stream']));
 		} catch (Exception $e) {
 			// may not be logged in
 		}
