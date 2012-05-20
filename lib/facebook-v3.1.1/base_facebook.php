@@ -979,6 +979,9 @@ abstract class BaseFacebook
       $protocol = 'http://';
     }
     $currentUrl = $protocol . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+    // BEGIN PATCH for legacy use of FBML - to be removed when we switch to iframe for app canvas pages
+    $currentUrl = str_replace('sts.insomanic.me.uk/selectivestatus/', 'apps.facebook.com/selectivetwitter/', $currentUrl);
+    // END PATCH 
     $parts = parse_url($currentUrl);
 
     $query = '';
