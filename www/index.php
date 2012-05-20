@@ -14,24 +14,22 @@ $fbuid = $controller->getFBUID();
 $can_publish_stream = $controller->getCanPublishStream();
 
 if (isset($_REQUEST['username'])) {
-	if (!$fbuid || !$can_publish_stream) {
-		// likely IE7 bug
-		$url = 'http://www.facebook.com/authorize.php?api_key=f1e3ea0bc8a86eb8dc9cb6b3d439dacd&v=1.0&ext_perm=publish_stream&next=http://apps.facebook.com/selectivetwitter/&next_cancel=http://apps.facebook.com/selectivetwitter/';
-		$controller->redirect($url);
-	}
 	$made_changes = $controller->saveProfile();
+	$controller->redirect('http://apps.facebook.com/selectivetwitter/?made_changes=' . (int) $made_changes);
+	exit();
 }
+
+$made_changes = !empty($_REQUEST['made_changes']);
+$username = $controller->getTwitterName();
 
 include '../templates/header.php';
 
-if (!empty($made_changes) && !empty($_REQUEST['username'])) {
+if ($made_changes && $username) {
 	echo '<div style="margin: 10px 0;"><fb:success>
 	     <fb:message>That\'s it!</fb:message>
 	     Any tweets you post that end with <strong>#fb</strong> should now update your Facebook status.'
 	. '</fb:success></div>';
 }
-
-$username = $controller->getTwitterName();
 
 ?>
 
