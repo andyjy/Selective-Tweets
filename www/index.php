@@ -15,7 +15,7 @@ $can_publish_stream = $controller->getCanPublishStream();
 
 if (isset($_REQUEST['username'])) {
 	$made_changes = $controller->saveProfile();
-	$controller->redirect('http://apps.facebook.com/selectivetwitter/?made_changes=' . (int) $made_changes);
+	$controller->redirect('/sts/?made_changes=' . (int) $made_changes);
 	exit();
 }
 
@@ -25,10 +25,10 @@ $username = $controller->getTwitterName();
 include '../templates/header.php';
 
 if ($made_changes && $username) {
-	echo '<div style="margin: 10px 0;"><fb:success>
-	     <fb:message>That\'s it!</fb:message>
+	echo '<div style="margin: 10px 0;"><p>
+	     <strong>That\'s it!</strong><br />
 	     Any tweets you post that end with <strong>#fb</strong> should now update your Facebook status.'
-	. '</fb:success></div>';
+	. '</p></div>';
 }
 
 ?>
@@ -37,12 +37,14 @@ if ($made_changes && $username) {
 <tr>
 <td width="50%" style="vertical-align: top;">
 
-<form action="https://apps.facebook.com/selectivetwitter/" method="post" requirelogin="1" promptpermission="publish_stream" style="padding: 15px; background-color: #fff; border: 4px solid #C6E2EE;">
+<form action="/sts/" method="post" requirelogin="1" promptpermission="publish_stream" style="padding: 15px; background-color: #fff; border: 4px solid #C6E2EE;">
 	<h2>
 		The one and only step:
 	</h2>
 	<p>
-		<fb:profile-pic uid="loggedinuser" size="square" linked="true" style="float: right; margin-left:10px; "/>
+		<?php if ($fbuid) { ?>
+		<a href="http://www.facebook.com/profile.php?id=<?php echo $fbuid; ?>"><img src="https://graph.facebook.com/" style="float: right; margin-left:10px; " /></a>
+		<?php } ?>
 		To configure for 
 		<?php if ($fbuid) { ?>
 		<fb:name uid="loggedinuser" useyou="false" capitalize="true" />'s
@@ -60,7 +62,7 @@ if ($made_changes && $username) {
 	<input type="submit" name="sub_update_username" value="Save">
 	<?php if ($username) { echo '<input type="submit" name="sub_clear" value="Clear">'; } ?>
 	<p>
-		If you have problems, see the <a href="http://apps.facebook.com/selectivetwitter/help">help page</a>
+		If you have problems, see the <a href="/sts/help">help page</a>
 	</p>
 </form>
 
@@ -71,7 +73,7 @@ if ($made_changes && $username) {
 </ul>
 
 <p>
-	<img src="https://sts.insomanic.me.uk/selectivestatus/img/error.png" width="16" height="16" alt="" style="margin-right: 5px; vertical-align: middle;">
+	<img src="/sts/img/error.png" width="16" height="16" alt="" style="margin-right: 5px; vertical-align: middle;">
 	If you're currently using the <a href="http://apps.facebook.com/twitter">Twitter application</a> or other app to update your status, remember to <a href="http://www.facebook.com/editapps.php">remove or disable it</a> so that it doesn't keep updating with all your tweets.
 </p>
 

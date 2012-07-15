@@ -84,7 +84,7 @@ class SelectiveTweets_WebApp extends SelectiveTweets_BaseApp
 	 */
 	public function redirect($url)
 	{
-		echo '<fb:redirect url="' . $url . '"/>';
+		header('Location: ' . $url);
 		// echo '<script>top.location.href = \'' . $url . "';</script>";
 		exit();
 	}

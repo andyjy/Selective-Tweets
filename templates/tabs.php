@@ -37,9 +37,9 @@ if (!empty($_REQUEST['fb_page_id'])) {
 	$qs = '?fb_page_id=' . htmlspecialchars(urlencode($_REQUEST['fb_page_id']));
 }
 ?>
-<fb:tabs>
-  <fb:tab-item href='https://apps.facebook.com/selectivetwitter/<?php echo $qs; ?>' title='Your Profile' <?php if (!(strpos($_SERVER['REQUEST_URI'], 'settings') || strpos($_SERVER['REQUEST_URI'], 'pages') || strpos($_SERVER['REQUEST_URI'], 'help'))) echo "selected='true' "; ?>/>
-  <fb:tab-item href='https://apps.facebook.com/selectivetwitter/pages<?php echo $qs; ?>' title='Your Fan Pages' <?php if (strpos($_SERVER['REQUEST_URI'], 'pages')) echo "selected='true' "; ?>/>
-  <fb:tab-item href='https://apps.facebook.com/selectivetwitter/settings<?php echo $qs; ?>' title='Settings' <?php if (strpos($_SERVER['REQUEST_URI'], 'settings')) echo "selected='true' "; ?>/>
-  <fb:tab-item href='https://apps.facebook.com/selectivetwitter/help<?php echo $qs; ?>' title='Help' <?php if (strpos($_SERVER['REQUEST_URI'], 'help')) echo "selected='true' "; ?>/>
- </fb:tabs>
+<ul class="tabs">
+  <li><a href="https://apps.facebook.com/selectivetwitter/<?php echo $qs; ?>" <?php if (!(strpos($_SERVER['REQUEST_URI'], 'settings') || strpos($_SERVER['REQUEST_URI'], 'pages') || strpos($_SERVER['REQUEST_URI'], 'help'))) echo 'class="selected" '; ?>>Your Profile</a></li>
+  <li><a href="https://apps.facebook.com/selectivetwitter/pages<?php echo $qs; ?>" <?php if (strpos($_SERVER['REQUEST_URI'], 'pages')) echo 'class="selected" '; ?>>Your Pages</a></li>
+  <li><a href="https://apps.facebook.com/selectivetwitter/settings<?php echo $qs; ?>" <?php if (strpos($_SERVER['REQUEST_URI'], 'settings')) echo 'class="selected" '; ?>>Settings</a></li>
+  <li><a href="https://apps.facebook.com/selectivetwitter/help<?php echo $qs; ?>" <?php if (strpos($_SERVER['REQUEST_URI'], 'help')) echo "selected='true' "; ?>>Help</a></li>
+ </ul>
