@@ -1,9 +1,13 @@
-<html>
-<head>
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:fb="http://ogp.me/ns/fb#">
+  <head>
+    <meta charset="utf-8">
+
+<link rel="stylesheet" type="test/css" href="<?php echo ROOT_URL; ?>css/bootstrap.min.css" />
 
 <style type="text/css">
 body, td { 
-    font-size: 11px;
+    font-size: 12px;
     color: #333;
     font-family: 'lucida grande', tahoma, verdana, arial;
 } 
@@ -12,6 +16,14 @@ a { color: #3B5998; text-decoration: none; }
 
 <meta property="og:title" content="Selective Tweets"/>
 <meta property="og:image" content="http://graph.facebook.com/selectivetwitter/picture?type=large"/>
+
+<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+
+<script type="text/javascript">
+  $(document).ready(function() {
+    // This is more like it!
+  });
+</script>
 
 <script type="text/javascript">
 
@@ -30,9 +42,33 @@ a { color: #3B5998; text-decoration: none; }
 </head>
 <body>
 
-<h1 style="margin-top: 15px;">Welcome to Selective Tweets!</h1>
+<div id="fb-root"></div>
+<script>
+  window.fbAsyncInit = function() {
+    FB.init({
+      appId      : '<?php echo FB_APP_ID; ?>',
+      channelUrl : '<?php echo ROOT_URL; ?>channel.html',
+      status     : true, // check login status
+      cookie     : true, // enable cookies to allow the server to access the session
+      xfbml      : true  // parse XFBML
+    });
+  };
 
-<p>Selective Tweets lets you update your Facebook status from Twitter - <br>BUT you can choose which tweets you want - just end a tweet with <strong>#fb</strong> when you want to post it as your Facebook status - simple!</p>
+  // Load the SDK Asynchronously
+  (function(d){
+     var js, id = 'facebook-jssdk', ref = d.getElementsByTagName('script')[0];
+     if (d.getElementById(id)) {return;}
+     js = d.createElement('script'); js.id = id; js.async = true;
+     js.src = "//connect.facebook.net/en_US/all.js";
+     ref.parentNode.insertBefore(js, ref);
+   }(document));
+</script>
+
+
+<h1 style="margin-top: 15px;">Welcome to Selective Tweets! (#fb)</h1>
+
+<p style="font-size: 15px; line-height: 19px;">Selective Tweets lets you update your Facebook status from Twitter - BUT only when you want.
+<br /><strong>Just end a tweet with the #fb hashtag</strong> when you want it to post to Facebook - simple!</p>
 
 <?php include 'tabs.php'; ?>
 

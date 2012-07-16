@@ -84,8 +84,11 @@ class SelectiveTweets_WebApp extends SelectiveTweets_BaseApp
 	 */
 	public function redirect($url)
 	{
-		header('Location: ' . $url);
-		// echo '<script>top.location.href = \'' . $url . "';</script>";
+		if (substr($url, 0, 1) == '/') {
+			header('Location: ' . $url);
+		} else {
+			echo "<script>window.top.location = '" . $url . "';</script>";
+		}
 		exit();
 	}
 
@@ -211,6 +214,7 @@ class SelectiveTweets_WebApp extends SelectiveTweets_BaseApp
 			$replace_names = !empty($_POST['replace_names']) ? 1 : 0;
 			$prefix = isset($_POST['prefix']) ? $_POST['prefix'] : '';
 			$this->db->exec("UPDATE selective_status_users SET allow_tag_anywhere = " . $this->db->quote($allow_tag_anywhere) . ", replace_names = " . $this->db->quote($replace_names) . ", show_twitter_link = " . $this->db->quote($show_follow_link) . ", prefix = " . $this->db->quote($prefix) . " WHERE fbuid = " . $this->db->quote($fbuid) . " LIMIT 1");
+			return true;
 		}
 	}
 }

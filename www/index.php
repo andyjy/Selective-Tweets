@@ -15,54 +15,60 @@ $can_publish_stream = $controller->getCanPublishStream();
 
 if (isset($_REQUEST['username'])) {
 	$made_changes = $controller->saveProfile();
-	$controller->redirect('/sts/?made_changes=' . (int) $made_changes);
+	$controller->redirect(ROOT_URL . '?made_changes=' . (int) $made_changes);
 	exit();
 }
 
 $made_changes = !empty($_REQUEST['made_changes']);
 $username = $controller->getTwitterName();
 
+
 include '../templates/header.php';
 
 if ($made_changes && $username) {
-	echo '<div style="margin: 10px 0;"><p>
-	     <strong>That\'s it!</strong><br />
-	     Any tweets you post that end with <strong>#fb</strong> should now update your Facebook status.'
-	. '</p></div>';
+?>
+<div class="alert alert-block alert-success">
+     <h4 class="alert-heading"><i class="icon-thumbs-up"></i> That's it!</h4>
+     <p>
+	Any tweets you post that end with <strong>#fb</strong> should now update your Facebook status.
+    </p>
+</div>
+<?php
 }
-
 ?>
 
 <table width="100%">
 <tr>
 <td width="50%" style="vertical-align: top;">
 
-<form action="/sts/" method="post" requirelogin="1" promptpermission="publish_stream" style="padding: 15px; background-color: #fff; border: 4px solid #C6E2EE;">
+<form action="<?php echo ROOT_URL; ?>" method="post" class="require_fb_login" id="test2" style="padding: 15px; background-color: #fff; border: 4px solid #C6E2EE;">
 	<h2>
 		The one and only step:
 	</h2>
 	<p>
 		<?php if ($fbuid) { ?>
-		<a href="http://www.facebook.com/profile.php?id=<?php echo $fbuid; ?>"><img src="https://graph.facebook.com/" style="float: right; margin-left:10px; " /></a>
+		<a href="http://www.facebook.com/profile.php?id=<?php echo $fbuid; ?>"><img src="https://graph.facebook.com/<?php echo _h($fbuid); ?>/picture?type=square&amp;return_ssl_resources=1" width="50" height="50"  style="float: right; margin-left:10px;" /></a>
 		<?php } ?>
-		To configure for 
-		<?php if ($fbuid) { ?>
-		<fb:name uid="loggedinuser" useyou="false" capitalize="true" />'s
-		<?php } else { echo 'your'; } ?>
-		 profile page,<br>
+		To configure for your profile page,<br />
 		just enter your Twitter username:
 	</p>
 	<?php if ($username) {
 		echo '<p>Currently configured to watch <strong>@' . _h($username) . '</strong> for updates</p>';
 	}
 	if ($username && !$can_publish_stream) {
-		echo '<p style="color: red;"><strong>The app doesn\'t have permission to update your status</strong> <input type="submit" name="sub_save_permission" value="Fix this"></p>';
+		echo '<p style="color: red;"><strong>The app doesn\'t have permission to update your status</strong> <input type="submit" name="sub_save_permission" value="Fix this" class="btn btn-danger" /></p>';
 	} ?>
-	<strong>@</strong>&nbsp;<input type="text" name="username" value="<?php echo _h($username); ?>">
-	<input type="submit" name="sub_update_username" value="Save">
-	<?php if ($username) { echo '<input type="submit" name="sub_clear" value="Clear">'; } ?>
+	<div class="input-prepend">
+	<span class="add-on">@</span><input type="text" name="username" value="<?php echo _h($username); ?>" class="input-medium" placeholder="your twitter ID">
+	<input type="submit" name="sub_update_username" value="Save" class="btn btn-primary">
+	<?php
+	if ($username) {
+		echo '<input type="submit" name="sub_clear" value="Clear" class="btn">';
+	}
+	?>
+	</div>
 	<p>
-		If you have problems, see the <a href="/sts/help">help page</a>
+		If you have problems, see the <a href="<?php echo ROOT_URL; ?>help">help page</a>
 	</p>
 </form>
 
@@ -72,21 +78,35 @@ if ($made_changes && $username) {
 	<li>Leave certain updates on Facebook for longer </li>
 </ul>
 
-<p>
-	<img src="/sts/img/error.png" width="16" height="16" alt="" style="margin-right: 5px; vertical-align: middle;">
-	If you're currently using the <a href="http://apps.facebook.com/twitter">Twitter application</a> or other app to update your status, remember to <a href="http://www.facebook.com/editapps.php">remove or disable it</a> so that it doesn't keep updating with all your tweets.
-</p>
-
-<p style="margin-top: 20px;">
-Follow me: <a href="http://twitter.com/andyy">@andyy</a>
-</p>
-
 </td>
 <td style="vertical-align: top;">
-	<img src="https://sts.insomanic.me.uk/selectivestatus/img/app_3_115463795461_5640.gif">
+	<img src="<?php echo ROOT_URL; ?>img/app_3_115463795461_5640.gif" />
 </td>
 </tr>
 </table>
+
+<?php if ($username) { ?>
+<p style="border: 1px solid #ffb646; background: #ffe6bf url(<?php echo ROOT_URL; ?>img/error.png) 10px 10px no-repeat; padding: 10px 10px 10px 40px;">
+If you're currently using the <a href="http://apps.facebook.com/twitter" target="_top">Twitter application</a> or other app to update your status, remember to <a href="https://www.facebook.com/settings/?tab=applications" target="_top">remove or disable it</a> so it doesn't keep updating with all your tweets.
+</p>
+<?php } ?>
+
+<script type="text/javascript">
+
+$(document).ready(function() {
+    var s = $('form.require_fb_login input:submit');
+    for(i=0; i<s.length; i++) {
+	b = $(s[i]);
+	b.on('click', function(event) {
+	    event.preventDefault();
+	    FB.login(function(response) {
+		b.closest('form')[0].submit();
+	    }, {scope: 'publish_stream,manage_pages'});
+	});
+    }
+  });
+
+</script>
 
 <?php
 
