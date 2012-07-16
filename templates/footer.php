@@ -5,7 +5,7 @@
 </div>
 
 <p>
-This app was built by me - <a href="http://twitter.com/andyy">@andyy</a>. I hope you find it useful! It's been growing quite popular, so if it helps you, your company, brand or cause, you may like to consider making a small donation.. :)
+This app was built by me - <a href="http://twitter.com/andyy">@andyy</a>. I hope you find it useful! It's grown quite popular, so if it helps you, your company, brand or cause, you may like to consider making a small donation.. :)
 </p>
 </div>
 

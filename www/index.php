@@ -41,7 +41,7 @@ if ($made_changes && $username) {
 <tr>
 <td width="50%" style="vertical-align: top;">
 
-<form action="<?php echo ROOT_URL; ?>" method="post" class="require_fb_login" id="test2" style="padding: 15px; background-color: #fff; border: 4px solid #C6E2EE;">
+<form action="<?php echo ROOT_URL; ?>" method="post" class="require_fb_login" id="test2" style="padding: 15px; background-color: #fff; border: 4px solid #C6E2EE; height: 195px;">
 	<h2>
 		The one and only step:
 	</h2>
@@ -79,8 +79,8 @@ if ($made_changes && $username) {
 </ul>
 
 </td>
-<td style="vertical-align: top;">
-	<img src="<?php echo ROOT_URL; ?>img/app_3_115463795461_5640.gif" />
+<td width="50%" style="vertical-align: top;">
+	<img src="<?php echo ROOT_URL; ?>img/app_3_115463795461_5640.gif" width="358" height="233" />
 </td>
 </tr>
 </table>

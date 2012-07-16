@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
 
-<link rel="stylesheet" type="test/css" href="<?php echo ROOT_URL; ?>css/bootstrap.min.css" />
+<link rel="stylesheet" type="text/css" href="<?php echo ROOT_URL; ?>css/bootstrap.min.css" />
 
 <style type="text/css">
 body, td { 
