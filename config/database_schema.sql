@@ -35,22 +35,3 @@ CREATE TABLE `tweet_queue` (
   UNIQUE KEY `tweet_id` (`tweet_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE `tweet_queue` (
-  `id` bigint(20) NOT NULL AUTO_INCREMENT,
-  `tweet_id` bigint(20) NOT NULL,
-  `created_at` datetime NOT NULL,
-  `enqueued` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `from_track` tinyint(1) NOT NULL DEFAULT '0',
-  `from_search` tinyint(1) NOT NULL DEFAULT '0',
-  `user` varchar(15) NOT NULL,
-  `text` text NOT NULL,
-  `entities` text,
-  `link` varchar(140) NOT NULL DEFAULT '',
-  `processed` int(11) NOT NULL,
-  `processed_guid` int(11) NOT NULL DEFAULT '0',
-  `deleted` tinyint(1) NOT NULL DEFAULT '0',
-  `sent` tinyint(1) NOT NULL DEFAULT '0',
-  `exception_count` tinyint(3) NOT NULL DEFAULT '0',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `tweet_id` (`tweet_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
