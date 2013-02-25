@@ -13,6 +13,11 @@ The app can be found at: [http://apps.facebook.com/selectivetwitter/](http://app
 
 Source code released January 2012 under the MIT licence. You are free to use this code for educational purposes, create derivative works and redistribute so long as you retain the original licence and copyright notices acknowledging myself as the original author. Be innovative, don't be evil.
 
+The Story
+=========
+
+I wrote up the story behind this app and how it collected 1M users in [this blog post](http://insomanic.me.uk/post/15507274276/selective-tweets-open-source).
+
 
 Requirements
 ============
