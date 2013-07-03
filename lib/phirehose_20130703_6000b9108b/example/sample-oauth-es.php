@@ -1,9 +1,10 @@
 <?php
 require_once('../lib/Phirehose.php');
+require_once('../lib/OauthPhirehose.php');
 /**
  * Example of using Phirehose to display the 'sample' twitter stream. 
  */
-class SampleConsumer extends Phirehose
+class SampleOauthConsumer extends OauthPhirehose
 {
   /**
    * Enqueue each status
@@ -19,11 +20,22 @@ class SampleConsumer extends Phirehose
      */
     $data = json_decode($status, true);
     if (is_array($data) && isset($data['user']['screen_name'])) {
-      print $data['user']['screen_name'] . ': ' . urldecode($data['text']) . "\n";
+      print $data['lang'] . ': ' . $data['user']['screen_name'] . ': ' . urldecode($data['text']) . "\n";
     }
   }
 }
 
+// The OAuth credentials you received when registering your app at Twitter
+define("TWITTER_CONSUMER_KEY", "");
+define("TWITTER_CONSUMER_SECRET", "");
+
+
+// The OAuth data for the twitter account
+define("OAUTH_TOKEN", "");
+define("OAUTH_SECRET", "");
+
 // Start streaming
-$sc = new SampleConsumer('username', 'password', Phirehose::METHOD_SAMPLE);
+$sc = new SampleOauthConsumer(OAUTH_TOKEN, OAUTH_SECRET, Phirehose::METHOD_SAMPLE);
+//$sc = new SampleOauthConsumer('username', 'password', Phirehose::METHOD_SAMPLE, Phirehose::FORMAT_JSON, 'en');
+$sc->setLang('es');
 $sc->consume();

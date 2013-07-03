@@ -1,9 +1,9 @@
 <?php
 require_once('../lib/Phirehose.php');
 /**
- * Example of using Phirehose to display a live filtered stream using geo locations 
+ * Example of using Phirehose to display the 'sample' twitter stream. 
  */
-class FilterTrackConsumer extends Phirehose
+class SampleConsumer extends Phirehose
 {
   /**
    * Enqueue each status
@@ -19,15 +19,13 @@ class FilterTrackConsumer extends Phirehose
      */
     $data = json_decode($status, true);
     if (is_array($data) && isset($data['user']['screen_name'])) {
-      print $data['user']['screen_name'] . ': ' . urldecode($data['text']) . "\n";
+      print $data['lang'] . ': ' . $data['user']['screen_name'] . ': ' . urldecode($data['text']) . "\n";
     }
   }
 }
 
 // Start streaming
-$sc = new FilterTrackConsumer('username', 'password', Phirehose::METHOD_FILTER);
-$sc->setLocations(array(
-       array(-122.75, 36.8, -121.75, 37.8), // San Francisco
-       array(-74, 40, -73, 41),             // New York 
-   ));
+$sc = new SampleConsumer('username', 'password', Phirehose::METHOD_SAMPLE);
+//$sc = new SampleConsumer('username', 'password', Phirehose::METHOD_SAMPLE, Phirehose::FORMAT_JSON, 'en');
+$sc->setLang('es');
 $sc->consume();

@@ -14,13 +14,14 @@ abstract class Phirehose
   /**
    * Class constants
    */
-  const URL_BASE         = 'https://stream.twitter.com/1/statuses/';
+  const URL_BASE         = 'https://stream.twitter.com/1.1/statuses/';
   const FORMAT_JSON      = 'json';
   const FORMAT_XML       = 'xml';
   const METHOD_FILTER    = 'filter';
   const METHOD_SAMPLE    = 'sample';
   const METHOD_RETWEET   = 'retweet';
   const METHOD_FIREHOSE  = 'firehose';
+  const METHOD_LINKS     = 'links';
   const EARTH_RADIUS_KM  = 6371;
   
   
@@ -149,7 +150,7 @@ abstract class Phirehose
   
   /**
    * Create a new Phirehose object attached to the appropriate twitter stream method.
-   * Methods are: METHOD_FIREHOSE, METHOD_RETWEET, METHOD_SAMPLE, METHOD_FILTER
+   * Methods are: METHOD_FIREHOSE, METHOD_RETWEET, METHOD_SAMPLE, METHOD_FILTER, METHOD_LINKS
    * Formats are: FORMAT_JSON, FORMAT_XML
    * @see Phirehose::METHOD_SAMPLE
    * @see Phirehose::FORMAT_JSON
@@ -159,12 +160,13 @@ abstract class Phirehose
    * @param string $method
    * @param string $format
    */
-  public function __construct($username, $password, $method = Phirehose::METHOD_SAMPLE, $format = self::FORMAT_JSON)
+  public function __construct($username, $password, $method = Phirehose::METHOD_SAMPLE, $format = self::FORMAT_JSON, $lang = FALSE)
   {
     $this->username = $username;
     $this->password = $password;
     $this->method = $method;
     $this->format = $format;
+    $this->lang = $lang;
   }
   
   /**
@@ -204,7 +206,7 @@ abstract class Phirehose
    *
    * @param array $trackWords
    */
-  public function setTrack($trackWords)
+  public function setTrack(array $trackWords)
   {
     $trackWords = ($trackWords === NULL) ? array() : $trackWords;
     sort($trackWords); // Non-optimal, but necessary
@@ -335,13 +337,33 @@ abstract class Phirehose
   /**
    * Sets the number of previous statuses to stream before transitioning to the live stream. Applies only to firehose
    * and filter + track methods. This is generally used internally and should not be needed by client applications.
-   * Applies to: METHOD_FILTER, METHOD_FIREHOSE
+   * Applies to: METHOD_FILTER, METHOD_FIREHOSE, METHOD_LINKS
    *
    * @param integer $count
    */
   public function setCount($count)
   {
     $this->count = $count;
+  }
+
+  /**
+   * Restricts tweets to the given language, given by an ISO 639-1 code (http://en.wikipedia.org/wiki/List_of_ISO_639-1_codes).
+   *
+   * @param string $lang
+   */
+  public function setLang($lang)
+  {
+    $this->lang = $lang;
+  }
+
+  /**
+   * Returns the ISO 639-1 code formatted language string of the current setting. (http://en.wikipedia.org/wiki/List_of_ISO_639-1_codes).
+   *
+   * @param string $lang
+   */
+  public function getLang()
+  {
+    return $this->lang;
   }
   
   /**
@@ -398,7 +420,11 @@ abstract class Phirehose
         if ($statusLength > 0) {
           // Read status bytes and enqueue
           $bytesLeft = $statusLength - strlen($this->buff);
-          while ($bytesLeft > 0 && $this->conn !== NULL && !feof($this->conn) && ($numChanged = stream_select($this->fdrPool, $fdw, $fde, 0, 20000)) !== FALSE) {
+          while ( $bytesLeft > 0 
+                  && $this->conn !== NULL 
+                  && !feof($this->conn) 
+                  && ($numChanged = stream_select($this->fdrPool, $fdw, $fde, 0, 20000)) !== FALSE 
+                  && (time() - $lastStreamActivity) <= $this->idleReconnectTimeout) {  
             $this->fdrPool = array($this->conn); // Reassign
             $this->buff .= fread($this->conn, $bytesLeft); // Read until all bytes are read into buffer
             $bytesLeft = ($statusLength - strlen($this->buff));
@@ -442,11 +468,15 @@ abstract class Phirehose
         
       } // End while-stream-activity
 
+      if (function_exists('pcntl_signal_dispatch')) {
+        pcntl_signal_dispatch();
+      }
+
       // Some sort of socket error has occured
       $this->lastErrorNo = is_resource($this->conn) ? @socket_last_error($this->conn) : NULL;
       $this->lastErrorMsg = ($this->lastErrorNo > 0) ? @socket_strerror($this->lastErrorNo) : 'Socket disconnected';
       $this->log('Phirehose connection error occured: ' . $this->lastErrorMsg,'error');
-      
+
       // Reconnect
     } while ($this->reconnect);
 
@@ -521,6 +551,11 @@ abstract class Phirehose
       
       // Setup params appropriately
       $requestParams = array('delimited' => 'length');
+
+      // Setup the language of the stream
+      if($this->lang) {
+        $requestParams['language'] = $this->lang;
+      }
       
       // Filter takes additional parameters
       if ($this->method == self::METHOD_FILTER && count($this->trackWords) > 0) {
@@ -560,7 +595,7 @@ abstract class Phirehose
       // Choose one randomly (if more than one)
       $this->log('Resolved host ' . $urlParts['host'] . ' to ' . implode(', ', $streamIPs));
       $streamIP = $streamIPs[rand(0, (count($streamIPs) - 1))];
-      $this->log('Connecting to ' . $streamIP);
+      $this->log("Connecting to {$scheme}{$streamIP}, port={$port}, connectTimeout={$this->connectTimeout}");
       
       @$this->conn = fsockopen($scheme . $streamIP, $port, $errNo, $errStr, $this->connectTimeout);
   
