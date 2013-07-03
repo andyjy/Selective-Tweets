@@ -29,8 +29,13 @@ define('FB_APP_SECRET', 'secret');
 
 define('ROOT_URL', '/'); // absolute or relative URL for links to where the app is hosted
 
-define('TWITTER_API_USER', 'username');
-define('TWITTER_API_PASSWORD', 'password');
+// The OAuth credentials you received when registering your app at Twitter
+define("TWITTER_CONSUMER_KEY", "");
+define("TWITTER_CONSUMER_SECRET", "");
+
+// The OAuth data for the twitter account
+define("OAUTH_TOKEN", "");
+define("OAUTH_SECRET", "");
 
 define('LOG_DIR', '/path/to/logs/');
 

@@ -11,7 +11,7 @@ require_once dirname(dirname(__FILE__)) . '/lib/phirehose/lib/Phirehose.php';
 /**
  * Phirehose library consumer class to receive a stream of tweets and stick them into our TweetQueue
  */
-class FilterTrackConsumer extends Phirehose
+class FilterTrackConsumer extends OauthPhirehose
 {
 	protected $connectFailuresMax = 200;
 	protected $tweetQueue;

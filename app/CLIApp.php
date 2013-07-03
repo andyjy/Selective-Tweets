@@ -52,7 +52,7 @@ class SelectiveTweets_CLIApp extends SelectiveTweets_BaseApp
 		}
 		$this->db->exec('set wait_timeout = 43200');
 		$tweetQueue = new TweetQueue($this->db);
-		$sc = new FilterTrackConsumer(TWITTER_API_USER, TWITTER_API_PASSWORD, Phirehose::METHOD_FILTER);
+		$sc = new FilterTrackConsumer(TWITTER_OAUTH_TOKEN, TWITTER_OAUTH_SECRET, Phirehose::METHOD_FILTER);
 		$sc->setTweetQueue($tweetQueue);
 		$sc->setTrack(array('#fb'));
 		$sc->consume();
