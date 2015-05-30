@@ -7,8 +7,6 @@
  * @author     Andy Young <andy@apexa.co.uk>
  * @license    MIT
  */
-require_once dirname(dirname(__FILE__)) . '/lib/phirehose/lib/Phirehose.php';
-require_once dirname(dirname(__FILE__)) . '/lib/phirehose/lib/OauthPhirehose.php';
 /**
  * Phirehose library consumer class to receive a stream of tweets and stick them into our TweetQueue
  */

@@ -26,7 +26,19 @@ class SelectiveTweets_CLIApp extends SelectiveTweets_BaseApp
 	{
 		// security - ensure we only run these scripts under CLI
 		$this->requireCLI();
+
 		parent::init();
+
+		$this->fb = FacebookSession::newAppSession();
+		try {
+			$this->fb->validate();
+		} catch (FacebookRequestException $ex) {
+			// Session not valid, Graph API returned an exception with the reason.
+			//echo $ex->getMessage();
+		} catch (\Exception $ex) {
+			// Graph API returned info, but it may mismatch the current app or have expired.
+			//echo $ex->getMessage();
+		}
 	}	
 
 	/**
@@ -153,7 +165,7 @@ class SelectiveTweets_CLIApp extends SelectiveTweets_BaseApp
 				$body = http_build_query($body);
 				$body = urldecode($body);
 				$request = array(
-					'method' => 'post',
+					'method' => 'POST',
 					'body' => $body,
 				);
 				if ($row['fb_oauth_access_token']) {
@@ -167,10 +179,11 @@ class SelectiveTweets_CLIApp extends SelectiveTweets_BaseApp
 			}
 			$this->log('BATCH', 'queue');
 			$this->log('batch: ' . count($batch), 'queue');
+
 			try {
-				$request = array('batch' => json_encode($batch));
-				// batch call
-				$results = $this->fb->api('/', 'post', $request);
+				$response = (new FacebookRequest($this->fb, 'POST', '?batch='.urlencode(json_encode($params))))->execute();
+				$results = $response->getGraphObject();
+
 				// process results
 				$this->log('results: ' . count($results), 'queue');
 				foreach ($results as $key => $result) {

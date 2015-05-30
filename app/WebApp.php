@@ -10,6 +10,8 @@
 require_once 'BaseApp.php';
 ini_set('error_log', '/var/log/php/selectivestatus_webapp.log');
 
+use Facebook\FacebookCanvasLoginHelper;
+
 /**
  * html-safe shorthand function
  */
@@ -23,6 +25,39 @@ function _h($str)
  */
 class SelectiveTweets_WebApp extends SelectiveTweets_BaseApp
 {
+	protected $fb_uid;
+
+	protected function init()
+	{
+		parent::init();
+
+		$helper = new FacebookCanvasLoginHelper();
+		try {
+		  $this->fb = $helper->getSession();
+		} catch(FacebookRequestException $ex) {
+		  // When Facebook returns an error
+		} catch(\Exception $ex) {
+		  // When validation fails or other local issues
+		}
+		if ($this->fb) {
+		  // Logged in
+		  $user_profile = (new FacebookRequest(
+		    $this->fb, 'GET', '/me'
+		  ))->execute()->getGraphObject(GraphUser::className());
+		  $this->fb_uid = $user_profile->getId();
+		}
+	}
+
+	/**
+	 * Accessor for the Facebook SDK
+	 *
+	 * @return Facebook
+	 */
+	public function getFacebook()
+	{
+		return $this->fb;
+	}
+
 	/**
 	 * Returns the twitter ID we've associated with the curent Facebook user
 	 *
@@ -42,11 +77,7 @@ class SelectiveTweets_WebApp extends SelectiveTweets_BaseApp
 	 */
 	public function getFBUID()
 	{
-		try {
-			return $this->fb->getUser();
-		} catch (Exception $e) {
-			// may not be logged in
-		}
+		return $this->fb_uid;
 	}
 
 	/**
@@ -57,8 +88,16 @@ class SelectiveTweets_WebApp extends SelectiveTweets_BaseApp
 	public function getCanPublishStream()
 	{
 		try {
-			$permissions = $this->fb->api('/me/permissions');
-			return !empty($permissions['data'][0]['publish_stream']);
+			$permissions = (new FacebookRequest(
+				$this->fb, 'GET', '/me/permissions'
+			))->execute()->getGraphObject();
+			foreach($permissions['data'] as $permission) {
+				if ($permission['permission'] == 'publish_stream'] && $permission['status'] == 'granted') {
+					return true;
+				}
+			}
+			// else
+			return false;
 		} catch (Exception $e) {
 			// may not be logged in
 		}
@@ -72,8 +111,16 @@ class SelectiveTweets_WebApp extends SelectiveTweets_BaseApp
 	public function getCanPostToPages()
 	{
 		try {
-			$permissions = $this->fb->api('/me/permissions');
-			return !(empty($permissions['data'][0]['manage_pages']) || empty($permissions['data'][0]['publish_stream']));
+			$permissions = (new FacebookRequest(
+				$this->fb, 'GET', '/me/permissions'
+			))->execute()->getGraphObject();
+			foreach($permissions['data'] as $permission) {
+				if (($permission['permission'] == 'publish_stream'] || $permission['permission'] == 'manage_pages']) && $permission['status'] == 'granted') {
+					return true;
+				}
+			}
+			// else
+			return false;
 		} catch (Exception $e) {
 			// may not be logged in
 		}
@@ -97,6 +144,7 @@ class SelectiveTweets_WebApp extends SelectiveTweets_BaseApp
 	 */
 	public function redirectToLogin()
 	{
+		// TODO
 		$this->redirect($this->fb->getLoginUrl());
 	}
 
@@ -140,7 +188,9 @@ class SelectiveTweets_WebApp extends SelectiveTweets_BaseApp
 	public function getUserPages()
 	{
 		$users_pages = array();
-		$accounts = $this->fb->api('/me/accounts');
+		$accounts = (new FacebookRequest(
+			$this->fb, 'GET', '/me/accounts'
+		))->execute()->getGraphObject(GraphUser::className());
 		if (!empty($accounts['data'])) {
 			foreach ($accounts['data'] as $account) {
 				if ($account['category'] != 'Application') {

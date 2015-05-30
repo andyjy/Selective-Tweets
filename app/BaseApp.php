@@ -14,7 +14,11 @@ if (defined('LOG_DIR')) {
 	ini_set('error_log', LOG_DIR . 'selectivestatus.log');
 }
 require_once $lib_dir . 'DB/MySQL.php';
-require_once $lib_dir . 'facebook/facebook.php';
+require $lib_dir . '../vendor/autoload.php';
+
+use Facebook\FacebookSession;
+use Facebook\FacebookRequest;
+use Facebook\FacebookRequestException;
 
 /**
  * Controller-esque stuff for the Selective Tweets app
@@ -30,7 +34,7 @@ abstract class SelectiveTweets_BaseApp
 	/** @var DB  DB Connection **/
 	protected $db;
 
-	/** @var Facebook  Facebook SDK **/
+	/** @var Facebook  FacebookSession **/
 	protected $fb;
 
 	/**
@@ -54,10 +58,7 @@ abstract class SelectiveTweets_BaseApp
 	protected function init()
 	{
 		$this->db = MySQL::factory(DB_HOST, DB_NAME, DB_USER, DB_PASS);
-		$this->fb = new Facebook(array(
-			'appId'  => FB_APP_ID,
-			'secret' => FB_APP_SECRET,
-		));
+		FacebookSession::setDefaultApplication(FB_APP_ID, FB_APP_SECRET);
 	}
 
 	/**
@@ -68,16 +69,6 @@ abstract class SelectiveTweets_BaseApp
 	public function getDB()
 	{
 		return $this->db;
-	}
-
-	/**
-	 * Accessor for the Facebook SDK
-	 *
-	 * @return Facebook
-	 */
-	public function getFacebook()
-	{
-		return $this->fb;
 	}
 
 	/**
