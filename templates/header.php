@@ -48,6 +48,7 @@ a { color: #3B5998; text-decoration: none; }
   window.fbAsyncInit = function() {
     FB.init({
       appId      : '<?php echo FB_APP_ID; ?>',
+      cookie     : true,
       status     : true,
       xfbml      : true,
       version    : 'v2.3'
