@@ -13,6 +13,7 @@ ini_set('error_log', '/var/log/php/selectivestatus_webapp.log');
 use Facebook\FacebookCanvasLoginHelper;
 use Facebook\FacebookRedirectLoginHelper;
 use Facebook\FacebookRequest;
+use Facebook\FacebookSession;
 use Facebook\GraphUser;
 
 /**
@@ -32,6 +33,7 @@ class SelectiveTweets_WebApp extends SelectiveTweets_BaseApp
 
 	protected function init()
 	{
+		session_start();
 		parent::init();
 		$this->initFacebookSession();
 	}
@@ -40,8 +42,8 @@ class SelectiveTweets_WebApp extends SelectiveTweets_BaseApp
 	{
 		// first try from redirect
 		try {
-			$helper = new FacebookRedirectLoginHelper();
-			$this->fb = $helper->getSession();
+			$helper = new FacebookRedirectLoginHelper(ROOT_URL);
+			$this->fb = $helper->getSessionFromRedirect();
 		} catch(FacebookRequestException $ex) {
 			// When Facebook returns an error
 		} catch(\Exception $ex) {
@@ -128,8 +130,8 @@ class SelectiveTweets_WebApp extends SelectiveTweets_BaseApp
 			$permissions = (new FacebookRequest(
 				$this->fb, 'GET', '/me/permissions'
 			))->execute()->getGraphObject();
-			foreach($permissions->getProperty('data') as $permission) {
-				if ($permission['permission'] == 'publish_stream' && $permission['status'] == 'granted') {
+			foreach($permissions->asArray() as $permission) {
+				if ($permission->permission == 'publish_actions' && $permission->status == 'granted') {
 					return true;
 				}
 			}
@@ -154,8 +156,8 @@ class SelectiveTweets_WebApp extends SelectiveTweets_BaseApp
 			$permissions = (new FacebookRequest(
 				$this->fb, 'GET', '/me/permissions'
 			))->execute()->getGraphObject();
-			foreach($permissions['data'] as $permission) {
-				if (($permission['permission'] == 'publish_stream' || $permission['permission'] == 'manage_pages') && $permission['status'] == 'granted') {
+			foreach($permissions->asArray() as $permission) {
+				if (($permission->permission == 'publish_actions' || $permission->permission == 'manage_pages') && $permission->status == 'granted') {
 					return true;
 				}
 			}
@@ -234,12 +236,12 @@ class SelectiveTweets_WebApp extends SelectiveTweets_BaseApp
 		$accounts = (new FacebookRequest(
 			$this->fb, 'GET', '/me/accounts'
 		))->execute()->getGraphObject(GraphUser::className());
-		if (!empty($accounts['data'])) {
-			foreach ($accounts['data'] as $account) {
-				if ($account['category'] != 'Application') {
-					if (!empty($account['id']) && !empty($account['name'])) {
-						$account['twitterid'] = '';
-						$users_pages[$account['id']] = $account;
+		if ($accounts = $accounts->asArray()) {
+			foreach ($accounts as $account) {
+				if ($account->category != 'Application') {
+					if (!empty($account->id) && !empty($account->name)) {
+						$account->twitterid = '';
+						$users_pages[$account->id] = $account;
 					} else {
 						$this->log('invalid account: ' . print_r($account, true), 'badaccounts');
 					}
@@ -247,7 +249,7 @@ class SelectiveTweets_WebApp extends SelectiveTweets_BaseApp
 			}
 			$rs = $this->db->query("SELECT * from selective_status_users where fbuid IN ('" . implode("', '", array_keys($users_pages)) . "')");
 			while ($rs && $row = $rs->fetch()) {
-				$users_pages[$row['fbuid']]['twitterid'] = $row['twitterid'];
+				$users_pages[$row['fbuid']]->twitterid = $row['twitterid'];
 			}
 		}
 		return $users_pages;
@@ -282,7 +284,7 @@ class SelectiveTweets_WebApp extends SelectiveTweets_BaseApp
 		foreach ($_POST as $key => $value) {
 			if (substr($key, 0, 8) == 'username') {
 				$the_page_id = trim(substr($key, 8));
-				$access_token = !empty($pages[$the_page_id]) ? $pages[$the_page_id]['access_token'] : '';
+				$access_token = !empty($pages[$the_page_id]) ? $pages[$the_page_id]->access_token : '';
 				$result = $this->db->exec("INSERT IGNORE INTO selective_status_users (fbuid, twitterid, is_page, fb_oauth_access_token) VALUES ("
 					. $this->db->quote($the_page_id) . ", " . $this->db->quote($value) . ", 1, " . $this->db->quote($access_token) . ")"
 					. " ON DUPLICATE KEY UPDATE twitterid = " . $this->db->quote($value) . ", is_page = 1, fb_oauth_access_token = " . $this->db->quote($access_token));
