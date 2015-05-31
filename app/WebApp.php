@@ -77,12 +77,17 @@ class SelectiveTweets_WebApp extends SelectiveTweets_BaseApp
 		}
 		if ($this->fb) {
 			// Logged in
-			$_SESSION['fb_token'] = $this->fb->getToken();
-			$user_profile = (new FacebookRequest(
-				$this->fb, 'GET', '/me'
-				))->execute()->getGraphObject(GraphUser::className());
-			$this->fb_uid = $user_profile->getId();
-		} else {
+			try {
+				$_SESSION['fb_token'] = $this->fb->getToken();
+				$user_profile = (new FacebookRequest(
+					$this->fb, 'GET', '/me'
+					))->execute()->getGraphObject(GraphUser::className());
+				$this->fb_uid = $user_profile->getId();
+			} catch (\Exception $e) {
+				$this->fb = null;
+			}
+		}
+		if (!$this->fb) {
 			session_destroy();
 		}
 	}
