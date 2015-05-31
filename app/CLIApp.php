@@ -13,6 +13,9 @@ require_once $app_dir . 'TweetQueue.php';
 require_once $app_dir . 'FilterTrack.php';
 require_once $app_dir . '../lib/Process.php';
 
+use Facebook\FacebookSession;
+use Facebook\FacebookRequest;
+
 /**
  * Controller for CLI scripts for the Selective Tweets app
  * Workhorse - handles collecting tweets and sending to FB
@@ -181,7 +184,7 @@ class SelectiveTweets_CLIApp extends SelectiveTweets_BaseApp
 			$this->log('batch: ' . count($batch), 'queue');
 
 			try {
-				$response = (new FacebookRequest($this->fb, 'POST', '?batch='.urlencode(json_encode($params))))->execute();
+				$response = (new FacebookRequest($this->fb, 'POST', '?batch='.urlencode(json_encode($batch))))->execute();
 				$results = $response->getGraphObject()->asArray();
 
 				// process results
