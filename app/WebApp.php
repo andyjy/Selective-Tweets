@@ -11,6 +11,7 @@ require_once 'BaseApp.php';
 ini_set('error_log', '/var/log/php/selectivestatus_webapp.log');
 
 use Facebook\FacebookCanvasLoginHelper;
+use Facebook\FacebookJavascriptLoginHelper;
 use Facebook\FacebookRedirectLoginHelper;
 use Facebook\FacebookRequest;
 use Facebook\FacebookSession;
@@ -44,8 +45,6 @@ class SelectiveTweets_WebApp extends SelectiveTweets_BaseApp
 		try {
 			$helper = new FacebookRedirectLoginHelper(ROOT_URL);
 			$this->fb = $helper->getSessionFromRedirect();
-		} catch(FacebookRequestException $ex) {
-			// When Facebook returns an error
 		} catch(\Exception $ex) {
 			// When validation fails or other local issues
 		}
@@ -54,22 +53,26 @@ class SelectiveTweets_WebApp extends SelectiveTweets_BaseApp
 			try {
 				$helper = new FacebookCanvasLoginHelper();
 				$this->fb = $helper->getSession();
-			} catch(FacebookRequestException $ex) {
-				// When Facebook returns an error
 			} catch(\Exception $ex) {
 				// When validation fails or other local issues
 			}
 		}
 		if (!$this->fb) {
-			if (!empty($_SESSION['fb_token'])) {
-				try {
-					$this->fb = new FacebookSession($_SESSION['fb_token']);
-					$this->fb->validate();
-				} catch(FacebookRequestException $ex) {
-					// When Facebook returns an error
-				} catch(\Exception $ex) {
-					// When validation fails or other local issues
-				}
+			// next try from JS
+			try {
+				$helper = new FacebookJavascriptLoginHelper();
+				$this->fb = $helper->getSession();
+			} catch(\Exception $ex) {
+				// When validation fails or other local issues
+			}
+		}
+		// finally fall back to an existing session, if we have one
+		if (!$this->fb && !empty($_SESSION['fb_token'])) {
+			try {
+				$this->fb = new FacebookSession($_SESSION['fb_token']);
+				$this->fb->validate();
+			} catch(\Exception $ex) {
+				// When validation fails or other local issues
 			}
 		}
 		if ($this->fb) {
