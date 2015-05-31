@@ -11,7 +11,7 @@ require_once 'BaseApp.php';
 ini_set('error_log', '/var/log/php/selectivestatus_webapp.log');
 
 use Facebook\FacebookCanvasLoginHelper;
-use Facebook\FacebookJavascriptLoginHelper;
+use Facebook\FacebookJavaScriptLoginHelper;
 use Facebook\FacebookRedirectLoginHelper;
 use Facebook\FacebookRequest;
 use Facebook\FacebookSession;
@@ -60,7 +60,7 @@ class SelectiveTweets_WebApp extends SelectiveTweets_BaseApp
 		if (!$this->fb) {
 			// next try from JS
 			try {
-				$helper = new FacebookJavascriptLoginHelper();
+				$helper = new FacebookJavaScriptLoginHelper();
 				$this->fb = $helper->getSession();
 			} catch(\Exception $ex) {
 				// When validation fails or other local issues
