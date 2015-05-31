@@ -11,6 +11,7 @@ require_once 'BaseApp.php';
 ini_set('error_log', '/var/log/php/selectivestatus_webapp.log');
 
 use Facebook\FacebookCanvasLoginHelper;
+use Facebook\FacebookRedirectLoginHelper;
 use Facebook\FacebookRequest;
 use Facebook\GraphUser;
 
@@ -32,21 +33,52 @@ class SelectiveTweets_WebApp extends SelectiveTweets_BaseApp
 	protected function init()
 	{
 		parent::init();
+		$this->initFacebookSession();
+	}
 
-		$helper = new FacebookCanvasLoginHelper();
+	protected function initFacebookSession()
+	{
+		// first try from redirect
 		try {
-		  $this->fb = $helper->getSession();
+			$helper = new FacebookRedirectLoginHelper();
+			$this->fb = $helper->getSession();
 		} catch(FacebookRequestException $ex) {
-		  // When Facebook returns an error
+			// When Facebook returns an error
 		} catch(\Exception $ex) {
-		  // When validation fails or other local issues
+			// When validation fails or other local issues
+		}
+		if (!$this->fb) {
+			// next try from canvas
+			try {
+				$helper = new FacebookCanvasLoginHelper();
+				$this->fb = $helper->getSession();
+			} catch(FacebookRequestException $ex) {
+				// When Facebook returns an error
+			} catch(\Exception $ex) {
+				// When validation fails or other local issues
+			}
+		}
+		if (!$this->fb) {
+			if (!empty($_SESSION['fb_token'])) {
+				try {
+					$this->fb = new FacebookSession($_SESSION['fb_token']);
+					$this->fb->validate();
+				} catch(FacebookRequestException $ex) {
+					// When Facebook returns an error
+				} catch(\Exception $ex) {
+					// When validation fails or other local issues
+				}
+			}
 		}
 		if ($this->fb) {
-		  // Logged in
-		  $user_profile = (new FacebookRequest(
-		    $this->fb, 'GET', '/me'
-		  ))->execute()->getGraphObject(GraphUser::className());
-		  $this->fb_uid = $user_profile->getId();
+			// Logged in
+			$_SESSION['fb_token'] = $this->fb->getToken();
+			$user_profile = (new FacebookRequest(
+				$this->fb, 'GET', '/me'
+				))->execute()->getGraphObject(GraphUser::className());
+			$this->fb_uid = $user_profile->getId();
+		} else {
+			session_destroy();
 		}
 	}
 
@@ -96,7 +128,7 @@ class SelectiveTweets_WebApp extends SelectiveTweets_BaseApp
 			$permissions = (new FacebookRequest(
 				$this->fb, 'GET', '/me/permissions'
 			))->execute()->getGraphObject();
-			foreach($permissions['data'] as $permission) {
+			foreach($permissions->getProperty('data') as $permission) {
 				if ($permission['permission'] == 'publish_stream' && $permission['status'] == 'granted') {
 					return true;
 				}
@@ -152,8 +184,8 @@ class SelectiveTweets_WebApp extends SelectiveTweets_BaseApp
 	 */
 	public function redirectToLogin()
 	{
-		// TODO
-		$this->redirect($this->fb->getLoginUrl());
+		$helper = new FacebookRedirectLoginHelper(ROOT_URL);
+		$this->redirect($helper->getLoginUrl());
 	}
 
 	/**
