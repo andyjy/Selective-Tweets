@@ -245,7 +245,7 @@ class SelectiveTweets_WebApp extends SelectiveTweets_BaseApp
 			$this->fb, 'GET', '/me/accounts'
 		))->execute()->getGraphObject(GraphUser::className());
 		if ($accounts = $accounts->asArray()) {
-			foreach ($accounts as $account) {
+			foreach ($accounts['data'] as $account) {
 				if ($account->category != 'Application') {
 					if (!empty($account->id) && !empty($account->name)) {
 						$account->twitterid = '';
