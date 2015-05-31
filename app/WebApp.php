@@ -11,6 +11,8 @@ require_once 'BaseApp.php';
 ini_set('error_log', '/var/log/php/selectivestatus_webapp.log');
 
 use Facebook\FacebookCanvasLoginHelper;
+use Facebook\FacebookRequest;
+use Facebook\GraphUser;
 
 /**
  * html-safe shorthand function
@@ -88,11 +90,14 @@ class SelectiveTweets_WebApp extends SelectiveTweets_BaseApp
 	public function getCanPublishStream()
 	{
 		try {
+			if (!$this->fb) {
+				return false;
+			}
 			$permissions = (new FacebookRequest(
 				$this->fb, 'GET', '/me/permissions'
 			))->execute()->getGraphObject();
 			foreach($permissions['data'] as $permission) {
-				if ($permission['permission'] == 'publish_stream'] && $permission['status'] == 'granted') {
+				if ($permission['permission'] == 'publish_stream' && $permission['status'] == 'granted') {
 					return true;
 				}
 			}
@@ -111,11 +116,14 @@ class SelectiveTweets_WebApp extends SelectiveTweets_BaseApp
 	public function getCanPostToPages()
 	{
 		try {
+			if (!$this->fb) {
+				return false;
+			}
 			$permissions = (new FacebookRequest(
 				$this->fb, 'GET', '/me/permissions'
 			))->execute()->getGraphObject();
 			foreach($permissions['data'] as $permission) {
-				if (($permission['permission'] == 'publish_stream'] || $permission['permission'] == 'manage_pages']) && $permission['status'] == 'granted') {
+				if (($permission['permission'] == 'publish_stream' || $permission['permission'] == 'manage_pages') && $permission['status'] == 'granted') {
 					return true;
 				}
 			}
@@ -188,6 +196,9 @@ class SelectiveTweets_WebApp extends SelectiveTweets_BaseApp
 	public function getUserPages()
 	{
 		$users_pages = array();
+		if (!$this->fb) {
+			return array();
+		}
 		$accounts = (new FacebookRequest(
 			$this->fb, 'GET', '/me/accounts'
 		))->execute()->getGraphObject(GraphUser::className());
