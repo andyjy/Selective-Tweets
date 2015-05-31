@@ -182,7 +182,7 @@ class SelectiveTweets_CLIApp extends SelectiveTweets_BaseApp
 
 			try {
 				$response = (new FacebookRequest($this->fb, 'POST', '?batch='.urlencode(json_encode($params))))->execute();
-				$results = $response->getGraphObject();
+				$results = $response->getGraphObject()->asArray();
 
 				// process results
 				$this->log('results: ' . count($results), 'queue');
@@ -193,7 +193,7 @@ class SelectiveTweets_CLIApp extends SelectiveTweets_BaseApp
 					$id = $status['id'];
 					$timestamp = $this->getStatusTimestamp($status);
 					$now = date('D, j M H:i:s');
-					if (!empty($result['code']) && $result['code'] == 200) {
+					if (!empty($result->code) && $result->code == 200) {
 						// HTTP 200 - success!
 						$this->db->exec("update tweet_queue set sent = 1 where id = " . $this->db->quote($id));
 						$this->log("update tweet_queue set sent = 1 where id = " . $this->db->quote($id), 'queue');
@@ -206,7 +206,7 @@ class SelectiveTweets_CLIApp extends SelectiveTweets_BaseApp
 						if ($timestamp > max($row['last_update_attempt'], $row['updated'])) {
 							$this->db->exec("UPDATE selective_status_users SET last_update_attempt = " . $this->db->quote($timestamp) . ", exception_count = 0 WHERE twitterid = " . $this->db->quote($user) . " AND fbuid = " . $this->db->quote($fbuid) . " LIMIT 1");
 						}
-						$this->log(': ' . $timestamp .  ' ERROR ' . $result['code'] . ' - ' . $result['body'] . ' / ' . $user . ' - ' . $fbuid . ': ' . $msg, 'queue');
+						$this->log(': ' . $timestamp .  ' ERROR ' . $result->code . ' - ' . $result->body . ' / ' . $user . ' - ' . $fbuid . ': ' . $msg, 'queue');
 					}
 				}
 				$this->log('batch done', 'queue');
