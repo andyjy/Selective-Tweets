@@ -192,10 +192,15 @@ class SelectiveTweets_WebApp extends SelectiveTweets_BaseApp
 	/**
 	 * Redirect to FB login dialog for this app
 	 */
-	public function redirectToLogin()
+	public function redirectToLogin($url = '')
 	{
-		$helper = new FacebookRedirectLoginHelper(ROOT_URL);
-		$this->redirect($helper->getLoginUrl());
+		try {
+			$helper = new FacebookRedirectLoginHelper(ROOT_URL . $url);
+			$this->redirect($helper->getLoginUrl());
+		} catch (\Exception $e) {
+			error_log($e->getDescription());
+			$this->redirect(ROOT_URL);
+		}
 	}
 
 	/**
