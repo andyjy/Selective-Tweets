@@ -43,27 +43,26 @@ a { color: #3B5998; text-decoration: none; }
 <body>
 
 <div id="fb-root"></div>
+
 <script>
   window.fbAsyncInit = function() {
     FB.init({
       appId      : '<?php echo FB_APP_ID; ?>',
-      channelUrl : '<?php echo ROOT_URL; ?>channel.html',
-      status     : true, // check login status
-      cookie     : true, // enable cookies to allow the server to access the session
-      xfbml      : true  // parse XFBML
+      cookie     : true,
+      status     : true,
+      xfbml      : true,
+      version    : 'v2.3'
     });
   };
 
-  // Load the SDK Asynchronously
-  (function(d){
-     var js, id = 'facebook-jssdk', ref = d.getElementsByTagName('script')[0];
+  (function(d, s, id){
+     var js, fjs = d.getElementsByTagName(s)[0];
      if (d.getElementById(id)) {return;}
-     js = d.createElement('script'); js.id = id; js.async = true;
-     js.src = "//connect.facebook.net/en_US/all.js";
-     ref.parentNode.insertBefore(js, ref);
-   }(document));
+     js = d.createElement(s); js.id = id;
+     js.src = "//connect.facebook.net/en_US/sdk.js";
+     fjs.parentNode.insertBefore(js, fjs);
+   }(document, 'script', 'facebook-jssdk'));
 </script>
-
 
 <h1 style="margin-top: 15px;">Welcome to Selective Tweets! (#fb)</h1>
 

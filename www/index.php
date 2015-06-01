@@ -94,17 +94,18 @@ If you're currently using the <a href="http://apps.facebook.com/twitter" target=
 <script type="text/javascript">
 
 $(document).ready(function() {
-    var s = $('form.require_fb_login input:submit');
-    for(i=0; i<s.length; i++) {
-	b = $(s[i]);
-	b.on('click', function(event) {
-	    event.preventDefault();
-	    FB.login(function(response) {
-		b.closest('form')[0].submit();
-	    }, {scope: 'publish_stream,manage_pages'});
-	});
+	var s = $('form.require_fb_login input:submit');
+	for(i=0; i<s.length; i++) {
+		b = $(s[i]);
+		b.on('click', function(event) {
+			event.preventDefault();
+			FB.login(
+				function(response) { b.closest('form')[0].submit(); },
+				{scope: 'publish_actions,manage_pages,publish_pages', auth_type: 'rerequest'}
+			);
+		});
     }
-  });
+});
 
 </script>
 

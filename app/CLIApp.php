@@ -13,6 +13,9 @@ require_once $app_dir . 'TweetQueue.php';
 require_once $app_dir . 'FilterTrack.php';
 require_once $app_dir . '../lib/Process.php';
 
+use Facebook\FacebookSession;
+use Facebook\FacebookRequest;
+
 /**
  * Controller for CLI scripts for the Selective Tweets app
  * Workhorse - handles collecting tweets and sending to FB
@@ -26,7 +29,19 @@ class SelectiveTweets_CLIApp extends SelectiveTweets_BaseApp
 	{
 		// security - ensure we only run these scripts under CLI
 		$this->requireCLI();
+
 		parent::init();
+
+		$this->fb = FacebookSession::newAppSession();
+		try {
+			$this->fb->validate();
+		} catch (FacebookRequestException $ex) {
+			// Session not valid, Graph API returned an exception with the reason.
+			error_log($ex->getMessage());
+		} catch (\Exception $ex) {
+			// Graph API returned info, but it may mismatch the current app or have expired.
+			error_log($ex->getMessage());
+		}
 	}	
 
 	/**
@@ -153,7 +168,7 @@ class SelectiveTweets_CLIApp extends SelectiveTweets_BaseApp
 				$body = http_build_query($body);
 				$body = urldecode($body);
 				$request = array(
-					'method' => 'post',
+					'method' => 'POST',
 					'body' => $body,
 				);
 				if ($row['fb_oauth_access_token']) {
@@ -167,10 +182,11 @@ class SelectiveTweets_CLIApp extends SelectiveTweets_BaseApp
 			}
 			$this->log('BATCH', 'queue');
 			$this->log('batch: ' . count($batch), 'queue');
+
 			try {
-				$request = array('batch' => json_encode($batch));
-				// batch call
-				$results = $this->fb->api('/', 'post', $request);
+				$response = (new FacebookRequest($this->fb, 'POST', '?batch='.urlencode(json_encode($batch))))->execute();
+				$results = $response->getGraphObject()->asArray();
+
 				// process results
 				$this->log('results: ' . count($results), 'queue');
 				foreach ($results as $key => $result) {
@@ -180,7 +196,7 @@ class SelectiveTweets_CLIApp extends SelectiveTweets_BaseApp
 					$id = $status['id'];
 					$timestamp = $this->getStatusTimestamp($status);
 					$now = date('D, j M H:i:s');
-					if (!empty($result['code']) && $result['code'] == 200) {
+					if (!empty($result->code) && $result->code == 200) {
 						// HTTP 200 - success!
 						$this->db->exec("update tweet_queue set sent = 1 where id = " . $this->db->quote($id));
 						$this->log("update tweet_queue set sent = 1 where id = " . $this->db->quote($id), 'queue');
@@ -193,7 +209,7 @@ class SelectiveTweets_CLIApp extends SelectiveTweets_BaseApp
 						if ($timestamp > max($row['last_update_attempt'], $row['updated'])) {
 							$this->db->exec("UPDATE selective_status_users SET last_update_attempt = " . $this->db->quote($timestamp) . ", exception_count = 0 WHERE twitterid = " . $this->db->quote($user) . " AND fbuid = " . $this->db->quote($fbuid) . " LIMIT 1");
 						}
-						$this->log(': ' . $timestamp .  ' ERROR ' . $result['code'] . ' - ' . $result['body'] . ' / ' . $user . ' - ' . $fbuid . ': ' . $msg, 'queue');
+						$this->log(': ' . $timestamp .  ' ERROR ' . $result->code . ' - ' . $result->body . ' / ' . $user . ' - ' . $fbuid . ': ' . $msg, 'queue');
 					}
 				}
 				$this->log('batch done', 'queue');

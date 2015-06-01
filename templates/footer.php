@@ -17,7 +17,7 @@ This app was built by me - <a href="http://twitter.com/andyy">@andyy</a>. I hope
 </p>
 </form>
 
-<div style="margin: 20px 0;"><fb:facepile width="740"></fb:facepile></div>
+<!--<div style="margin: 20px 0;"><div class="fb-page" data-href="https://www.facebook.com/selectivetwitter" data-hide-cover="true" data-show-facepile="true" data-show-posts="false"><div class="fb-xfbml-parse-ignore"><blockquote cite="https://www.facebook.com/selectivetwitter"><a href="https://www.facebook.com/selectivetwitter">Selective Tweets</a></blockquote></div></div></div>-->
 
 <p style="text-align: center;">The code behind Selective Tweets is now available on GitHub -<br />
 Read the blog post: <a href="http://insomanic.me.uk/post/15507274276/selective-tweets-open-source?from=app">Selective Tweets: 3 years, 1 million users, now open-source!</a></p>

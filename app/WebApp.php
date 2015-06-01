@@ -10,6 +10,13 @@
 require_once 'BaseApp.php';
 ini_set('error_log', '/var/log/php/selectivestatus_webapp.log');
 
+use Facebook\FacebookCanvasLoginHelper;
+use Facebook\FacebookJavaScriptLoginHelper;
+use Facebook\FacebookRedirectLoginHelper;
+use Facebook\FacebookRequest;
+use Facebook\FacebookSession;
+use Facebook\GraphUser;
+
 /**
  * html-safe shorthand function
  */
@@ -23,6 +30,78 @@ function _h($str)
  */
 class SelectiveTweets_WebApp extends SelectiveTweets_BaseApp
 {
+	protected $fb_uid;
+
+	protected function init()
+	{
+		session_start();
+		parent::init();
+		$this->initFacebookSession();
+	}
+
+	protected function initFacebookSession()
+	{
+		// first try from redirect
+		try {
+			$helper = new FacebookRedirectLoginHelper(ROOT_URL);
+			$this->fb = $helper->getSessionFromRedirect();
+		} catch(\Exception $ex) {
+			// When validation fails or other local issues
+		}
+		if (!$this->fb) {
+			// next try from canvas
+			try {
+				$helper = new FacebookCanvasLoginHelper();
+				$this->fb = $helper->getSession();
+			} catch(\Exception $ex) {
+				// When validation fails or other local issues
+			}
+		}
+		if (!$this->fb) {
+			// next try from JS
+			try {
+				$helper = new FacebookJavaScriptLoginHelper();
+				$this->fb = $helper->getSession();
+			} catch(\Exception $ex) {
+				// When validation fails or other local issues
+			}
+		}
+		// finally fall back to an existing session, if we have one
+		if (!$this->fb && !empty($_SESSION['fb_token'])) {
+			try {
+				$this->fb = new FacebookSession($_SESSION['fb_token']);
+				$this->fb->validate();
+			} catch(\Exception $ex) {
+				// When validation fails or other local issues
+			}
+		}
+		if ($this->fb) {
+			// Logged in
+			try {
+				$_SESSION['fb_token'] = $this->fb->getToken();
+				$user_profile = (new FacebookRequest(
+					$this->fb, 'GET', '/me'
+					))->execute()->getGraphObject(GraphUser::className());
+				$this->fb_uid = $user_profile->getId();
+			} catch (\Exception $e) {
+				$this->fb = null;
+			}
+		}
+		if (!$this->fb) {
+			session_destroy();
+		}
+	}
+
+	/**
+	 * Accessor for the Facebook SDK
+	 *
+	 * @return Facebook
+	 */
+	public function getFacebook()
+	{
+		return $this->fb;
+	}
+
 	/**
 	 * Returns the twitter ID we've associated with the curent Facebook user
 	 *
@@ -42,11 +121,7 @@ class SelectiveTweets_WebApp extends SelectiveTweets_BaseApp
 	 */
 	public function getFBUID()
 	{
-		try {
-			return $this->fb->getUser();
-		} catch (Exception $e) {
-			// may not be logged in
-		}
+		return $this->fb_uid;
 	}
 
 	/**
@@ -57,8 +132,19 @@ class SelectiveTweets_WebApp extends SelectiveTweets_BaseApp
 	public function getCanPublishStream()
 	{
 		try {
-			$permissions = $this->fb->api('/me/permissions');
-			return !empty($permissions['data'][0]['publish_stream']);
+			if (!$this->fb) {
+				return false;
+			}
+			$permissions = (new FacebookRequest(
+				$this->fb, 'GET', '/me/permissions'
+			))->execute()->getGraphObject();
+			foreach($permissions->asArray() as $permission) {
+				if ($permission->permission == 'publish_actions' && $permission->status == 'granted') {
+					return true;
+				}
+			}
+			// else
+			return false;
 		} catch (Exception $e) {
 			// may not be logged in
 		}
@@ -72,8 +158,19 @@ class SelectiveTweets_WebApp extends SelectiveTweets_BaseApp
 	public function getCanPostToPages()
 	{
 		try {
-			$permissions = $this->fb->api('/me/permissions');
-			return !(empty($permissions['data'][0]['manage_pages']) || empty($permissions['data'][0]['publish_stream']));
+			if (!$this->fb) {
+				return false;
+			}
+			$permissions = (new FacebookRequest(
+				$this->fb, 'GET', '/me/permissions'
+			))->execute()->getGraphObject();
+			foreach($permissions->asArray() as $permission) {
+				if (($permission->permission == 'publish_actions' || $permission->permission == 'manage_pages') && $permission->status == 'granted') {
+					return true;
+				}
+			}
+			// else
+			return false;
 		} catch (Exception $e) {
 			// may not be logged in
 		}
@@ -97,7 +194,8 @@ class SelectiveTweets_WebApp extends SelectiveTweets_BaseApp
 	 */
 	public function redirectToLogin()
 	{
-		$this->redirect($this->fb->getLoginUrl());
+		$helper = new FacebookRedirectLoginHelper(ROOT_URL);
+		$this->redirect($helper->getLoginUrl());
 	}
 
 	/**
@@ -140,13 +238,18 @@ class SelectiveTweets_WebApp extends SelectiveTweets_BaseApp
 	public function getUserPages()
 	{
 		$users_pages = array();
-		$accounts = $this->fb->api('/me/accounts');
-		if (!empty($accounts['data'])) {
+		if (!$this->fb) {
+			return array();
+		}
+		$accounts = (new FacebookRequest(
+			$this->fb, 'GET', '/me/accounts'
+		))->execute()->getGraphObject(GraphUser::className());
+		if ($accounts = $accounts->asArray()) {
 			foreach ($accounts['data'] as $account) {
-				if ($account['category'] != 'Application') {
-					if (!empty($account['id']) && !empty($account['name'])) {
-						$account['twitterid'] = '';
-						$users_pages[$account['id']] = $account;
+				if ($account->category != 'Application') {
+					if (!empty($account->id) && !empty($account->name)) {
+						$account->twitterid = '';
+						$users_pages[$account->id] = $account;
 					} else {
 						$this->log('invalid account: ' . print_r($account, true), 'badaccounts');
 					}
@@ -154,7 +257,7 @@ class SelectiveTweets_WebApp extends SelectiveTweets_BaseApp
 			}
 			$rs = $this->db->query("SELECT * from selective_status_users where fbuid IN ('" . implode("', '", array_keys($users_pages)) . "')");
 			while ($rs && $row = $rs->fetch()) {
-				$users_pages[$row['fbuid']]['twitterid'] = $row['twitterid'];
+				$users_pages[$row['fbuid']]->twitterid = $row['twitterid'];
 			}
 		}
 		return $users_pages;
@@ -189,7 +292,7 @@ class SelectiveTweets_WebApp extends SelectiveTweets_BaseApp
 		foreach ($_POST as $key => $value) {
 			if (substr($key, 0, 8) == 'username') {
 				$the_page_id = trim(substr($key, 8));
-				$access_token = !empty($pages[$the_page_id]) ? $pages[$the_page_id]['access_token'] : '';
+				$access_token = !empty($pages[$the_page_id]) ? $pages[$the_page_id]->access_token : '';
 				$result = $this->db->exec("INSERT IGNORE INTO selective_status_users (fbuid, twitterid, is_page, fb_oauth_access_token) VALUES ("
 					. $this->db->quote($the_page_id) . ", " . $this->db->quote($value) . ", 1, " . $this->db->quote($access_token) . ")"
 					. " ON DUPLICATE KEY UPDATE twitterid = " . $this->db->quote($value) . ", is_page = 1, fb_oauth_access_token = " . $this->db->quote($access_token));
