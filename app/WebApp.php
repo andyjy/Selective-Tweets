@@ -198,7 +198,7 @@ class SelectiveTweets_WebApp extends SelectiveTweets_BaseApp
 			$helper = new FacebookRedirectLoginHelper(ROOT_URL . $url);
 			$this->redirect($helper->getLoginUrl());
 		} catch (\Exception $e) {
-			error_log($e->getDescription());
+			error_log($e->getMessage());
 			$this->redirect(ROOT_URL);
 		}
 	}
